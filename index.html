@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Baterias Brasil - ERP Estoque e Vendas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- LIBS PARA QR CODE E CÓDIGO DE BARRAS -->
+  <!-- Se estiver sem internet, essas libs não carregam; o resto do sistema funciona normalmente. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+  <style>
+    :root {
+      --azul-escuro: #002b5c;
+      --azul-medio: #014f86;
+      --amarelo: #ffcc00;
+      --cinza-claro: #f4f6fb;
+      --texto: #222;
+      --danger: #c1121f;
+      --radius: 16px;
+      --shadow: 0 12px 25px rgba(0,0,0,0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #014f86, #002b5c 45%, #000814 90%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, var(--azul-escuro), #000814);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 span {
+      color: var(--amarelo);
+    }
+
+    header .badge {
+      background: var(--amarelo);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding: 16px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto 32px auto;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-tabs button {
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .nav-tabs button.active {
+      background: var(--amarelo);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .nav-tabs button:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.18);
+    }
+
+    .view {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px) {
+      .grid-2 {
+        grid-template-columns: 1.4fr 1.2fr;
+      }
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2, .card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card h2 span,
+    .card h3 span {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+      opacity: 0.9;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.2);
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--amarelo);
+      border-color: transparent;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--amarelo);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.78rem;
+    }
+
+    .muted {
+      font-size: 0.78rem;
+      opacity: 0.8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      background: rgba(0,0,0,0.25);
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .tag-ok {
+      background: rgba(0, 200, 83, 0.3);
+      color: #c8ffdf;
+    }
+
+    .tag-low {
+      background: rgba(255, 193, 7, 0.3);
+      color: #fff3cd;
+    }
+
+    .tag-zero {
+      background: rgba(220, 53, 69, 0.3);
+      color: #f8d7da;
+    }
+
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .stat-pill {
+      background: rgba(0,0,0,0.3);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+    }
+
+    .stat-pill strong {
+      color: var(--amarelo);
+    }
+
+    .flex {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .total-box {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.4);
+      font-size: 0.85rem;
+    }
+
+    .total-box strong {
+      color: var(--amarelo);
+    }
+
+    .alert {
+      margin-top: 6px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .alert-danger {
+      border-left: 3px solid var(--danger);
+    }
+
+    .alert-ok {
+      border-left: 3px solid #2ecc71;
+    }
+
+    /* Área de etiqueta para impressão */
+    #etiquetaArea {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 10px;
+      background: #fff;
+      color: #000;
+      max-width: 320px;
+    }
+
+    #etiquetaArea h4 {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    #etiquetaNomeProduto {
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    #barcodeEtiqueta {
+      width: 100%;
+    }
+
+    .no-print {
+      /* elementos marcados aqui não são mostrados na impressão */
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+      header, .nav-tabs, .no-print {
+        display: none !important;
+      }
+      main {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+      }
+      #etiquetaArea {
+        margin: 10mm;
+        box-shadow: none;
+        border: 1px solid #000;
+      }
+    }
+
+    footer {
+      text-align: center;
+      padding: 8px;
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1><span>⚡</span> Baterias Brasil <span>ERP</span></h1>
+  <div class="badge">Estoque • Vendas • Pix</div>
+</header>
+
+<main>
+  <div class="nav-tabs no-print">
+    <button class="active" onclick="showView('dashboard', this)">📊 Dashboard</button>
+    <button onclick="showView('estoque', this)">📦 Estoque / Entrada</button>
+    <button onclick="showView('vendas', this)">🧾 Vendas (PDV)</button>
+    <button onclick="showView('balanco', this)">📅 Balanço Mensal/Anual</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view active">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Visão Geral <span>Resumo rápido</span></h2>
+        <p class="muted">
+          Controle básico do seu estoque e das vendas. Os dados ficam salvos neste dispositivo (localStorage).
+        </p>
+        <div class="stats-row" style="margin-top: 12px;">
+          <div class="stat-pill">
+            Produtos cadastrados: <strong id="dashQtdProdutos">0</strong>
+          </div>
+          <div class="stat-pill">
+            Itens em estoque: <strong id="dashQtdItens">0</strong>
+          </div>
+          <div class="stat-pill">
+            Faturamento mês: <strong id="dashFatMes">R$ 0,00</strong>
+          </div>
+          <div class="stat-pill">
+            Lucro mês: <strong id="dashLucroMes">R$ 0,00</strong>
+          </div>
+        </div>
+        <div class="alert alert-ok" style="margin-top: 10px;">
+          Dica: cadastre as mercadorias em <strong>Estoque / Entrada</strong>, gere as etiquetas com código de barras,
+          cole nas baterias e use o leitor óptico na tela de <strong>Vendas (PDV)</strong>.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Atalhos Rápidos</h2>
+        <div class="flex-col">
+          <button class="btn-primary" onclick="showView('estoque');scrollToTop()">➕ Cadastrar novo produto</button>
+          <button class="btn-outline" onclick="showView('vendas');scrollToTop()">🧾 Abrir PDV (vendas)</button>
+          <button class="btn-outline" onclick="showView('balanco');scrollToTop()">📅 Ver balanço atual</button>
+        </div>
+        <p class="muted" style="margin-top: 10px;">
+          Lembre-se: este ERP é estático, rodando no navegador. Para usar em vários computadores, copie o arquivo
+          <code>index.html</code> para cada máquina.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ESTOQUE / ENTRADA -->
+  <section id="view-estoque" class="view">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Entrada de Mercadoria <span>Cadastro + Código de Barras</span></h2>
+        <form id="formProduto" onsubmit="cadastrarProduto(event)">
+          <label for="nomeProduto">Nome do produto</label>
+          <input id="nomeProduto" type="text" required placeholder="Ex: Bateria 60Ah Moura">
+
+          <label for="precoCusto">Preço de custo (R$)</label>
+          <input id="precoCusto" type="number" step="0.01" min="0" required placeholder="Ex: 300.00">
+
+          <label for="precoVenda">Preço de venda (R$)</label>
+          <input id="precoVenda" type="number" step="0.01" min="0" required placeholder="Ex: 450.00">
+
+          <label for="quantidadeEstoque">Quantidade (unidades)</label>
+          <input id="quantidadeEstoque" type="number" min="0" required placeholder="Ex: 10">
+
+          <label for="fornecedor">Fornecedor (opcional)</label>
+          <input id="fornecedor" type="text" placeholder="Ex: Distribuidora XYZ">
+
+          <div class="flex" style="margin-top: 4px;">
+            <button type="submit" class="btn-primary">Salvar produto e gerar código de barras</button>
+            <button type="button" class="btn-outline btn-sm" onclick="limparProdutosConfirm()">
+              Limpar todos os produtos
+            </button>
+          </div>
+        </form>
+
+        <div class="alert alert-danger no-print" id="alertLibs" style="display:none;margin-top:10px;">
+          Atenção: as bibliotecas de <strong>código de barras</strong> ou <strong>QRCode</strong> não foram
+          carregadas. Verifique a conexão com a internet se precisar dos códigos.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Etiqueta para Impressão <span>Use em impressora comum ou de etiqueta</span></h3>
+        <p class="muted">
+          After cadastrar um produto, clique em <strong>“Etiqueta”</strong> na tabela abaixo para carregar aqui.
+        </p>
+        <div id="etiquetaArea">
+          <h4>Baterias Brasil</h4>
+          <div id="etiquetaNomeProduto">Selecione um produto para gerar a etiqueta.</div>
+          <svg id="barcodeEtiqueta"></svg>
+        </div>
+        <button class="btn-primary no-print" style="margin-top:8px;" onclick="imprimirEtiqueta()">
+          🖨️ Imprimir etiqueta
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Estoque Atual</h2>
+      <p class="muted">
+        Código de barras é gerado automaticamente. Cole a etiqueta na mercadoria para usar o leitor na venda.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Cód. Barras</th>
+            <th>Estoque</th>
+            <th>Preço venda</th>
+            <th>Custo</th>
+            <th class="no-print">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyProdutos">
+          <!-- Linhas geradas via JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- VENDAS / PDV -->
+  <section id="view-vendas" class="view">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>PDV - Caixa <span>Leitura por código de barras</span></h2>
+
+        <label for="codigoLeitura">Código de barras (use o leitor ou digite e Enter)</label>
+        <input id="codigoLeitura" type="text" placeholder="Aponte o leitor para a etiqueta" onkeydown="handleEnterCodigo(event)">
+
+        <div class="flex">
+          <button class="btn-primary" type="button" onclick="adicionarProdutoPorCodigo()">
+            ➕ Adicionar item
+          </button>
+          <button class="btn-outline btn-sm" type="button" onclick="limparCarrinho()">
+            🧹 Limpar carrinho
+          </button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Qtd</th>
+              <th>Preço</th>
+              <th>Total</th>
+              <th class="no-print">Remover</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyCarrinho">
+            <!-- Linhas via JS -->
+          </tbody>
+        </table>
+
+        <div class="total-box">
+          <div>Total dos itens: <strong id="totalVenda">R$ 0,00</strong></div>
+          <div>Lucro estimado: <strong id="lucroVenda">R$ 0,00</strong></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Pagamento</h3>
+
+        <label for="formaPagamento">Forma de pagamento</label>
+        <select id="formaPagamento">
+          <option value="pix">Pix (recomendado)</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao">Cartão de crédito/débito</option>
+        </select>
+
+        <div id="areaCartao" style="display:none;">
+          <p class="muted">
+            Campos apenas para controle visual. Não há cobrança automática de cartão real.
+          </p>
+          <label>Número do cartão</label>
+          <input type="text" placeholder="**** **** **** ****">
+          <div class="flex">
+            <div style="flex:1;">
+              <label>Validade</label>
+              <input type="text" placeholder="MM/AA">
+            </div>
+            <div style="flex:1;">
+              <label>CVV</label>
+              <input type="password" placeholder="***">
+            </div>
+          </div>
+        </div>
+
+        <div id="areaPix">
+          <button class="btn-primary" type="button" onclick="gerarPixQRCode()">
+            💳 Gerar QRCode Pix para o total
+          </button>
+          <div class="muted" style="margin-top:6px;">
+            Valor atual: <strong id="valorPixAtual">R$ 0,00</strong>
+          </div>
+          <div id="qrcodePix" style="margin-top:10px;background:#fff;padding:8px;border-radius:10px;"></div>
+          <textarea id="pixPayload" rows="3" readonly style="margin-top:8px;"
+            placeholder="Payload EMV do Pix (para copiar/colar, se precisar)."></textarea>
+        </div>
+
+        <button class="btn-primary" style="margin-top:10px;" type="button" onclick="finalizarVenda()">
+          ✅ Finalizar venda (pagamento recebido)
+        </button>
+        <p class="muted" style="margin-top:6px;">
+          Ao finalizar: o estoque é atualizado automaticamente e a venda entra no balanço mensal e anual.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BALANÇO -->
+  <section id="view-balanco" class="view">
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Balanço Mensal <span>Mês atual</span></h2>
+        <div class="total-box">
+          <div>Faturamento mês: <strong id="balFatMes">R$ 0,00</strong></div>
+          <div>Custo mês: <strong id="balCustoMes">R$ 0,00</strong></div>
+          <div>Lucro mês: <strong id="balLucroMes">R$ 0,00</strong></div>
+        </div>
+        <p class="muted" style="margin-top:8px;">
+          Considera todas as vendas registradas neste mesmo mês (data do computador).
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Balanço Anual <span>Ano atual</span></h2>
+        <div class="total-box">
+          <div>Faturamento ano: <strong id="balFatAno">R$ 0,00</strong></div>
+          <div>Custo ano: <strong id="balCustoAno">R$ 0,00</strong></div>
+          <div>Lucro ano: <strong id="balLucroAno">R$ 0,00</strong></div>
+        </div>
+        <p class="muted" style="margin-top:8px;">
+          Soma de todas as vendas do ano atual. Ideal para fechamento anual.
+        </p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Histórico de Vendas</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Itens</th>
+            <th>Forma</th>
+            <th>Total</th>
+            <th>Lucro</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyVendas">
+          <!-- Linhas via JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print">
+  Baterias Brasil ERP estático • Dados salvos no navegador deste dispositivo.
+</footer>
+
+<script>
+  // ==========================
+  // DADOS EM MEMÓRIA + STORAGE
+  // ==========================
+  let produtos = [];
+  let vendas = [];
+  let carrinho = [];
+
+  function carregarDados() {
+    try {
+      const p = localStorage.getItem('bb_produtos');
+      const v = localStorage.getItem('bb_vendas');
+      produtos = p ? JSON.parse(p) : [];
+      vendas = v ? JSON.parse(v) : [];
+    } catch (e) {
+      produtos = [];
+      vendas = [];
+    }
+  }
+
+  function salvarDados() {
+    localStorage.setItem('bb_produtos', JSON.stringify(produtos));
+    localStorage.setItem('bb_vendas', JSON.stringify(vendas));
+  }
+
+  // ==============
+  // TROCA DE ABA
+  // ==============
+  function showView(view, btn) {
+    const sections = document.querySelectorAll('.view');
+    sections.forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('view-' + view);
+    if (el) el.classList.add('active');
+
+    const navButtons = document.querySelectorAll('.nav-tabs button');
+    navButtons.forEach(b => b.classList.remove('active'));
+    if (btn && btn.tagName === 'BUTTON') {
+      btn.classList.add('active');
+    } else {
+      navButtons.forEach(b => {
+        if (b.textContent.includes('Dashboard') && view === 'dashboard') b.classList.add('active');
+        if (b.textContent.includes('Estoque') && view === 'estoque') b.classList.add('active');
+        if (b.textContent.includes('Vendas') && view === 'vendas') b.classList.add('active');
+        if (b.textContent.includes('Balanço') && view === 'balanco') b.classList.add('active');
+      });
+    }
+
+    scrollToTop();
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ====================
+  // CADASTRO DE PRODUTOS
+  // ====================
+  function gerarCodigoBarrasAleatorio() {
+    // Código numérico simples, usando timestamp. Ideal para Code128.
+    const base = Date.now().toString();
+    return 'BB' + base; // Ex: BB1699999999999
+  }
+
+  function cadastrarProduto(event) {
+    event.preventDefault();
+    const nome = document.getElementById('nomeProduto').value.trim();
+    const precoCusto = parseFloat(document.getElementById('precoCusto').value) || 0;
+    const precoVenda = parseFloat(document.getElementById('precoVenda').value) || 0;
+    const quantidade = parseInt(document.getElementById('quantidadeEstoque').value) || 0;
+    const fornecedor = document.getElementById('fornecedor').value.trim();
+
+    if (!nome) {
+      alert('Informe o nome do produto.');
+      return;
+    }
+    if (precoVenda <= 0) {
+      alert('Informe o preço de venda.');
+      return;
+    }
+
+    const codigoBarras = gerarCodigoBarrasAleatorio();
+
+    const produto = {
+      id: Date.now(),
+      nome,
+      precoCusto,
+      precoVenda,
+      quantidadeEstoque: quantidade,
+      fornecedor,
+      codigoBarras
+    };
+
+    produtos.push(produto);
+    salvarDados();
+    renderTabelaProdutos();
+    atualizarDashboardEBalancos();
+    mostrarEtiqueta(codigoBarras);
+
+    document.getElementById('formProduto').reset();
+    alert('Produto cadastrado com sucesso. Código de barras gerado: ' + codigoBarras);
+  }
+
+  function limparProdutosConfirm() {
+    if (produtos.length === 0) {
+      alert('Não há produtos para limpar.');
+      return;
+    }
+    if (confirm('Tem certeza que deseja apagar TODOS os produtos do estoque?')) {
+      produtos = [];
+      salvarDados();
+      renderTabelaProdutos();
+      atualizarDashboardEBalancos();
+    }
+  }
+
+  function renderTabelaProdutos() {
+    const tbody = document.getElementById('tbodyProdutos');
+    tbody.innerHTML = '';
+
+    let totalItens = 0;
+
+    produtos.forEach(p => {
+      totalItens += p.quantidadeEstoque;
+
+      const tr = document.createElement('tr');
+
+      const tdNome = document.createElement('td');
+      tdNome.textContent = p.nome;
+      tr.appendChild(tdNome);
+
+      const tdCodigo = document.createElement('td');
+      tdCodigo.textContent = p.codigoBarras;
+      tr.appendChild(tdCodigo);
+
+      const tdEstoque = document.createElement('td');
+      const tag = document.createElement('span');
+      tag.classList.add('tag');
+      if (p.quantidadeEstoque <= 0) {
+        tag.classList.add('tag-zero');
+        tag.textContent = 'Sem estoque';
+      } else if (p.quantidadeEstoque <= 3) {
+        tag.classList.add('tag-low');
+        tag.textContent = p.quantidadeEstoque + ' (baixo)';
+      } else {
+        tag.classList.add('tag-ok');
+        tag.textContent = p.quantidadeEstoque + ' un';
+      }
+      tdEstoque.appendChild(tag);
+      tr.appendChild(tdEstoque);
+
+      const tdVenda = document.createElement('td');
+      tdVenda.textContent = 'R$ ' + p.precoVenda.toFixed(2).replace('.', ',');
+      tr.appendChild(tdVenda);
+
+      const tdCusto = document.createElement('td');
+      tdCusto.textContent = 'R$ ' + p.precoCusto.toFixed(2).replace('.', ',');
+      tr.appendChild(tdCusto);
+
+      const tdAcoes = document.createElement('td');
+      tdAcoes.classList.add('no-print');
+      const btnEtiqueta = document.createElement('button');
+      btnEtiqueta.textContent = 'Etiqueta';
+      btnEtiqueta.className = 'btn-outline btn-sm';
+      btnEtiqueta.onclick = () => mostrarEtiqueta(p.codigoBarras);
+      tdAcoes.appendChild(btnEtiqueta);
+      tr.appendChild(tdAcoes);
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('dashQtdProdutos').textContent = produtos.length;
+    document.getElementById('dashQtdItens').textContent = totalItens;
+  }
+
+  // ===========================
+  // ETIQUETA / CÓDIGO DE BARRAS
+  // ===========================
+  function mostrarEtiqueta(codigoBarras) {
+    const produto = produtos.find(p => p.codigoBarras === codigoBarras);
+    if (!produto) {
+      alert('Produto não encontrado para a etiqueta.');
+      return;
+    }
+    document.getElementById('etiquetaNomeProduto').textContent = produto.nome + ' • Cód: ' + produto.codigoBarras;
+
+    try {
+      JsBarcode("#barcodeEtiqueta", produto.codigoBarras, {
+        format: "CODE128",
+        displayValue: false,
+        width: 2,
+        height: 50,
+        margin: 0
+      });
+    } catch (e) {
+      console.warn('Erro ao gerar código de barras:', e);
+      document.getElementById('alertLibs').style.display = 'block';
+    }
+  }
+
+  function imprimirEtiqueta() {
+    window.print();
+  }
+
+  // ============
+  // CARRINHO/PDV
+  // ============
+  function handleEnterCodigo(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      adicionarProdutoPorCodigo();
+    }
+  }
+
+  function adicionarProdutoPorCodigo() {
+    const input = document.getElementById('codigoLeitura');
+    const cod = input.value.trim();
+    if (!cod) {
+      alert('Informe o código de barras (ou use o leitor).');
+      return;
+    }
+
+    const produto = produtos.find(p => p.codigoBarras === cod);
+    if (!produto) {
+      alert('Produto não encontrado para o código: ' + cod);
+      return;
+    }
+
+    if (produto.quantidadeEstoque <= 0) {
+      alert('Produto sem estoque.');
+      return;
+    }
+
+    let itemCarrinho = carrinho.find(i => i.codigoBarras === cod);
+    if (itemCarrinho) {
+      if (produto.quantidadeEstoque <= itemCarrinho.quantidade) {
+        alert('Estoque insuficiente para aumentar a quantidade.');
+        return;
+      }
+      itemCarrinho.quantidade += 1;
+    } else {
+      itemCarrinho = {
+        codigoBarras: produto.codigoBarras,
+        nome: produto.nome,
+        precoVenda: produto.precoVenda,
+        precoCusto: produto.precoCusto,
+        quantidade: 1
+      };
+      carrinho.push(itemCarrinho);
+    }
+
+    input.value = '';
+    renderCarrinho();
+  }
+
+  function limparCarrinho() {
+    carrinho = [];
+    renderCarrinho();
+  }
+
+  function removerItemCarrinho(index) {
+    carrinho.splice(index, 1);
+    renderCarrinho();
+  }
+
+  function renderCarrinho() {
+    const tbody = document.getElementById('tbodyCarrinho');
+    tbody.innerHTML = '';
+
+    let total = 0;
+    let custoTotal = 0;
+
+    carrinho.forEach((item, index) => {
+      const subTotal = item.precoVenda * item.quantidade;
+      const subCusto = item.precoCusto * item.quantidade;
+      total += subTotal;
+      custoTotal += subCusto;
+
+      const tr = document.createElement('tr');
+
+      const tdNome = document.createElement('td');
+      tdNome.textContent = item.nome;
+      tr.appendChild(tdNome);
+
+      const tdQtd = document.createElement('td');
+      tdQtd.textContent = item.quantidade;
+      tr.appendChild(tdQtd);
+
+      const tdPreco = document.createElement('td');
+      tdPreco.textContent = 'R$ ' + item.precoVenda.toFixed(2).replace('.', ',');
+      tr.appendChild(tdPreco);
+
+      const tdTotal = document.createElement('td');
+      tdTotal.textContent = 'R$ ' + subTotal.toFixed(2).replace('.', ',');
+      tr.appendChild(tdTotal);
+
+      const tdAcoes = document.createElement('td');
+      tdAcoes.classList.add('no-print');
+      const btnRemover = document.createElement('button');
+      btnRemover.className = 'btn-danger btn-sm';
+      btnRemover.textContent = 'X';
+      btnRemover.onclick = () => removerItemCarrinho(index);
+      tdAcoes.appendChild(btnRemover);
+      tr.appendChild(tdAcoes);
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('totalVenda').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    document.getElementById('lucroVenda').textContent = 'R$ ' + (total - custoTotal).toFixed(2).replace('.', ',');
+    document.getElementById('valorPixAtual').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+  }
+
+  // ============
+  // PIX - EMV
+  // ============
+  // Configure sua chave Pix aqui:
+  const PIX_CHAVE = "sua_chave_pix_aqui"; // Ex: telefone, e-mail ou chave aleatória
+  const PIX_NOME_RECEBEDOR = "BATERIAS BRASIL";
+  const PIX_CIDADE = "MARILIA";
+  const PIX_TXID_BASE = "BBERP";
+
+  function limparTextoPix(text) {
+    if (!text) return "";
+    return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Za-z0-9 \-\.]/g, '')
+      .toUpperCase()
+      .slice(0, 25);
+  }
+
+  function emvTag(id, value) {
+    const len = value.length.toString().padStart(2, '0');
+    return id + len + value;
+  }
+
+  function crc16Ccitt(str) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+      crc ^= str.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        if ((crc & 0x8000) !== 0) {
+          crc = (crc << 1) ^ 0x1021;
+        } else {
+          crc = (crc << 1);
+        }
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  function gerarPayloadPix(valorTotal) {
+    const amount = valorTotal.toFixed(2);
+    const chave = PIX_CHAVE || "CHAVEPIXTESTE@EMAIL.COM";
+    const nome = limparTextoPix(PIX_NOME_RECEBEDOR || "BATERIAS BRASIL");
+    const cidade = limparTextoPix(PIX_CIDADE || "MARILIA").slice(0, 15);
+    const txid = (PIX_TXID_BASE || "TXID") + Date.now().toString().slice(-6);
+
+    const gui = emvTag("00", "br.gov.bcb.pix");
+    const chaveTag = emvTag("01", chave);
+    const desc = ""; // opcional: emvTag("02", "PAGAMENTO");
+    const merchantAccountInfo = emvTag("26", gui + chaveTag + desc);
+
+    const payloadSemCRC =
+      emvTag("00", "01") + // Payload Format Indicator
+      emvTag("01", "12") + // Point of Initiation Method - 12 = dinâmico
+      merchantAccountInfo +
+      emvTag("52", "0000") + // Merchant Category Code
+      emvTag("53", "986") +  // Moeda BRL
+      emvTag("54", amount) + // Valor
+      emvTag("58", "BR") +   // País
+      emvTag("59", nome) +   // Nome recebedor
+      emvTag("60", cidade) + // Cidade
+      emvTag("62", emvTag("05", txid)); // Additional Data Field Template com TXID
+
+    const toCRC = payloadSemCRC + "6304";
+    const crc = crc16Ccitt(toCRC);
+
+    return payloadSemCRC + "63" + "04" + crc;
+  }
+
+  function gerarPixQRCode() {
+    const totalStr = document.getElementById('totalVenda').textContent.replace('R$','').replace('.','').replace(',','.');
+    let total = parseFloat(totalStr) || 0;
+
+    if (!carrinho.length || total <= 0) {
+      alert('Carrinho vazio ou valor zero.');
+      return;
+    }
+
+    const payload = gerarPayloadPix(total);
+    const container = document.getElementById('qrcodePix');
+    container.innerHTML = "";
+
+    try {
+      new QRCode(container, {
+        text: payload,
+        width: 200,
+        height: 200
+      });
+      document.getElementById('pixPayload').value = payload;
+      document.getElementById('valorPixAtual').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    } catch (e) {
+      console.warn('Erro ao gerar QRCode Pix:', e);
+      document.getElementById('alertLibs').style.display = 'block';
+    }
+  }
+
+  // ============
+  // FINALIZAR VENDA
+  // ============
+  function finalizarVenda() {
+    if (!carrinho.length) {
+      alert('Carrinho vazio.');
+      return;
+    }
+
+    const totalStr = document.getElementById('totalVenda').textContent.replace('R$','').replace('.','').replace(',','.');
+    const lucroStr = document.getElementById('lucroVenda').textContent.replace('R$','').replace('.','').replace(',','.');
+    const total = parseFloat(totalStr) || 0;
+    const lucro = parseFloat(lucroStr) || 0;
+
+    if (!confirm('Confirmar que o pagamento foi recebido? Valor: R$ ' + total.toFixed(2).replace('.', ','))) {
+      return;
+    }
+
+    // Atualiza estoque
+    carrinho.forEach(item => {
+      const prod = produtos.find(p => p.codigoBarras === item.codigoBarras);
+      if (prod) {
+        prod.quantidadeEstoque = Math.max(0, prod.quantidadeEstoque - item.quantidade);
+      }
+    });
+
+    // Registra venda
+    const formaPagamento = document.getElementById('formaPagamento').value;
+    const custoTotal = total - lucro;
+
+    const venda = {
+      id: Date.now(),
+      data: new Date().toISOString(),
+      itens: carrinho.map(i => ({ ...i })),
+      formaPagamento,
+      total,
+      custoTotal,
+      lucro
+    };
+
+    vendas.push(venda);
+    salvarDados();
+    carrinho = [];
+    renderCarrinho();
+    renderTabelaProdutos();
+    renderTabelaVendas();
+    atualizarDashboardEBalancos();
+
+    alert('Venda registrada e estoque atualizado.');
+  }
+
+  // ==========
+  // BALANÇOS
+  // ==========
+  function calcularBalanco(modo) {
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    let fat = 0;
+    let custo = 0;
+    let lucro = 0;
+
+    vendas.forEach(v => {
+      const d = new Date(v.data);
+      const mes = d.getMonth();
+      const ano = d.getFullYear();
+
+      if (modo === 'mes' && mes === mesAtual && ano === anoAtual) {
+        fat += v.total;
+        custo += v.custoTotal;
+        lucro += v.lucro;
+      }
+      if (modo === 'ano' && ano === anoAtual) {
+        fat += v.total;
+        custo += v.custoTotal;
+        lucro += v.lucro;
+      }
+    });
+
+    if (modo === 'mes') {
+      document.getElementById('balFatMes').textContent = 'R$ ' + fat.toFixed(2).replace('.', ',');
+      document.getElementById('balCustoMes').textContent = 'R$ ' + custo.toFixed(2).replace('.', ',');
+      document.getElementById('balLucroMes').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
+      // também atualiza dashboard
+      document.getElementById('dashFatMes').textContent = 'R$ ' + fat.toFixed(2).replace('.', ',');
+      document.getElementById('dashLucroMes').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
+    }
+
+    if (modo === 'ano') {
+      document.getElementById('balFatAno').textContent = 'R$ ' + fat.toFixed(2).replace('.', ',');
+      document.getElementById('balCustoAno').textContent = 'R$ ' + custo.toFixed(2).replace('.', ',');
+      document.getElementById('balLucroAno').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
+    }
+  }
+
+  function atualizarDashboardEBalancos() {
+    renderTabelaProdutos();
+    calcularBalanco('mes');
+    calcularBalanco('ano');
+  }
+
+  function renderTabelaVendas() {
+    const tbody = document.getElementById('tbodyVendas');
+    tbody.innerHTML = '';
+
+    vendas
+      .slice()
+      .sort((a, b) => b.id - a.id)
+      .forEach(v => {
+        const tr = document.createElement('tr');
+        const data = new Date(v.data);
+        const dataStr = data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+
+        const tdData = document.createElement('td');
+        tdData.textContent = dataStr;
+        tr.appendChild(tdData);
+
+        const tdItens = document.createElement('td');
+        tdItens.textContent = v.itens.map(i => `${i.nome} (x${i.quantidade})`).join(', ');
+        tr.appendChild(tdItens);
+
+        const tdForma = document.createElement('td');
+        tdForma.textContent = v.formaPagamento.toUpperCase();
+        tr.appendChild(tdForma);
+
+        const tdTotal = document.createElement('td');
+        tdTotal.textContent = 'R$ ' + v.total.toFixed(2).replace('.', ',');
+        tr.appendChild(tdTotal);
+
+        const tdLucro = document.createElement('td');
+        tdLucro.textContent = 'R$ ' + v.lucro.toFixed(2).replace('.', ',');
+        tr.appendChild(tdLucro);
+
+        tbody.appendChild(tr);
+      });
+  }
+
+  // Mostrar/ocultar área de cartão conforme forma de pagamento
+  document.getElementById('formaPagamento').addEventListener('change', () => {
+    const fp = document.getElementById('formaPagamento').value;
+    document.getElementById('areaCartao').style.display = fp === 'cartao' ? 'block' : 'none';
+    document.getElementById('areaPix').style.display = fp === 'pix' ? 'block' : 'block'; // deixa Pix sempre visível
+  });
+
+  // ====================
+  // INICIALIZAÇÃO
+  // ====================
+  window.addEventListener('DOMContentLoaded', () => {
+    carregarDados();
+    renderTabelaProdutos();
+    renderTabelaVendas();
+    atualizarDashboardEBalancos();
+
+    // Verifica libs
+    if (typeof JsBarcode === 'undefined' || typeof QRCode === 'undefined') {
+      const alertLibs = document.getElementById('alertLibs');
+      if (alertLibs) alertLibs.style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>
