@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Baterias Brasil - ERP Estoque e Vendas</title>
+  <title>Baterias Brasil -  Estoque e Vendas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- LIBS PARA QR CODE E CÓDIGO DE BARRAS -->
@@ -287,6 +287,23 @@
       color: var(--amarelo);
     }
 
+    /* FOTO NO DASHBOARD */
+    .dashboard-photo {
+      width: 100%;
+      margin-bottom: 10px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .dashboard-photo img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      max-height: 180px;
+    }
+
     .flex {
       display: flex;
       gap: 8px;
@@ -391,13 +408,13 @@
 </head>
 <body>
 <header>
-  <h1><span>⚡</span> <span id="headerNomeEmpresa">Baterias Brasil</span> <span>ERP</span></h1>
+  <h1><span>⚡</span> <span id="headerNomeEmpresa">Baterias Brasil</span> <span>LTDA</span></h1>
   <div class="badge">Estoque • Vendas • Pix • Boleto</div>
 </header>
 
 <main>
   <div class="nav-tabs no-print">
-    <button class="active" onclick="showView('dashboard', this)">📊 Dashboard</button>
+    <button class="active" onclick="showView('dashboard', this)">📊 Visão Geral</button>
     <button onclick="showView('config', this)">⚙️ Configuração</button>
     <button onclick="showView('estoque', this)">📦 Estoque / Entrada</button>
     <button onclick="showView('vendas', this)">🧾 Vendas (PDV)</button>
@@ -410,7 +427,7 @@
       <div class="card">
         <h2>Visão Geral <span>Resumo rápido</span></h2>
         <p class="muted">
-          Controle básico do seu estoque e das vendas. Os dados ficam salvos neste dispositivo (localStorage).
+        Produtos, Itens e Faturamento.
         </p>
         <div class="stats-row" style="margin-top: 12px;">
           <div class="stat-pill">
@@ -428,20 +445,31 @@
         </div>
         <div class="alert alert-ok" style="margin-top: 10px;">
           Dica: cadastre as mercadorias em <strong>Estoque / Entrada</strong>, gere as etiquetas com código de barras,
-          cole nas baterias e use o leitor óptico na tela de <strong>Vendas (PDV)</strong>.
+          cole nas baterias e use o leitor óptico na tela de <strong>Vendas</strong>.
         </div>
       </div>
 
       <div class="card">
-        <h2>Atalhos Rápidos</h2>
+        <h2>Acessos Rapidos</h2>
+
+        <!-- FOTO NO DASHBOARD -->
+        <div class="dashboard-photo">
+          <!-- Troque "foto1.avif" pelo nome do arquivo da sua foto, se quiser -->
+          <img src="foto1.avif" alt="Brasil Baterias - Fachada / Loja">
+        </div>
+
         <div class="flex-col">
           <button class="btn-primary" onclick="showView('estoque');scrollToTop()">➕ Cadastrar novo produto</button>
           <button class="btn-outline" onclick="showView('vendas');scrollToTop()">🧾 Abrir PDV (vendas)</button>
           <button class="btn-outline" onclick="showView('balanco');scrollToTop()">📅 Ver balanço atual</button>
+          <!-- NOVO BOTÃO 24H -->
+          <button class="btn-primary" type="button" onclick="window.open('https://bateriasbrasil.onrender.com/', '_blank')">
+            🌙 Venda Cliente 24h
+          </button>
         </div>
         <p class="muted" style="margin-top: 10px;">
-          Lembre-se: este ERP é estático, rodando no navegador. Para usar em vários computadores, copie o arquivo
-          <code>index.html</code> para cada máquina.
+       
+          <code></code> 
         </p>
       </div>
     </div>
@@ -779,7 +807,7 @@
 </main>
 
 <footer class="no-print">
-  Baterias Brasil ERP estático • Dados salvos no navegador deste dispositivo.
+ direitos reservados a Baterias Brasil LTDA 2025
 </footer>
 
 <script>
@@ -912,7 +940,7 @@
       btn.classList.add('active');
     } else {
       navButtons.forEach(b => {
-        if (b.textContent.includes('Dashboard') && view === 'dashboard') b.classList.add('active');
+        if (b.textContent.includes('Visão Geral') && view === 'dashboard') b.classList.add('active');
         if (b.textContent.includes('Configuração') && view === 'config') b.classList.add('active');
         if (b.textContent.includes('Estoque') && view === 'estoque') b.classList.add('active');
         if (b.textContent.includes('Vendas') && view === 'vendas') b.classList.add('active');
