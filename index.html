@@ -374,6 +374,11 @@
         box-shadow: none;
         border: 1px solid #000;
       }
+      #boletoArea {
+        margin: 10mm;
+        box-shadow: none;
+        border: 1px solid #000;
+      }
     }
 
     footer {
@@ -386,13 +391,14 @@
 </head>
 <body>
 <header>
-  <h1><span>⚡</span> Baterias Brasil <span>ERP</span></h1>
-  <div class="badge">Estoque • Vendas • Pix</div>
+  <h1><span>⚡</span> <span id="headerNomeEmpresa">Baterias Brasil</span> <span>ERP</span></h1>
+  <div class="badge">Estoque • Vendas • Pix • Boleto</div>
 </header>
 
 <main>
   <div class="nav-tabs no-print">
     <button class="active" onclick="showView('dashboard', this)">📊 Dashboard</button>
+    <button onclick="showView('config', this)">⚙️ Configuração</button>
     <button onclick="showView('estoque', this)">📦 Estoque / Entrada</button>
     <button onclick="showView('vendas', this)">🧾 Vendas (PDV)</button>
     <button onclick="showView('balanco', this)">📅 Balanço Mensal/Anual</button>
@@ -441,6 +447,40 @@
     </div>
   </section>
 
+  <!-- CONFIGURAÇÃO DA EMPRESA -->
+  <section id="view-config" class="view">
+    <div class="card">
+      <h2>Configurações da Empresa <span>Dados usados em Pix, boleto e etiquetas</span></h2>
+      <form id="formEmpresa" onsubmit="salvarEmpresa(event)">
+        <label for="empresaNome">Nome fantasia / Razão social</label>
+        <input id="empresaNome" type="text" placeholder="Ex: Brasil Baterias Ltda.">
+
+        <label for="empresaCnpj">CNPJ</label>
+        <input id="empresaCnpj" type="text" placeholder="Ex: 00.000.000/0001-00">
+
+        <label for="empresaEndereco">Endereço completo</label>
+        <input id="empresaEndereco" type="text" placeholder="Rua, número, bairro, cidade - UF">
+
+        <label for="empresaTelefone">Telefone / WhatsApp</label>
+        <input id="empresaTelefone" type="text" placeholder="(xx) xxxxx-xxxx">
+
+        <label for="empresaEmail">E-mail</label>
+        <input id="empresaEmail" type="email" placeholder="contato@empresa.com.br">
+
+        <label for="empresaCidade">Cidade (para Pix)</label>
+        <input id="empresaCidade" type="text" placeholder="Ex: MARILIA">
+
+        <label for="empresaPixChave">Chave Pix principal</label>
+        <input id="empresaPixChave" type="text" placeholder="Telefone, e-mail ou chave aleatória">
+
+        <button type="submit" class="btn-primary">Salvar dados da empresa</button>
+      </form>
+      <p class="muted" style="margin-top:8px;">
+        Esses dados aparecem na etiqueta, no boleto interno e são usados para gerar o QRCode Pix.
+      </p>
+    </div>
+  </section>
+
   <!-- ESTOQUE / ENTRADA -->
   <section id="view-estoque" class="view">
     <div class="grid grid-2">
@@ -479,10 +519,10 @@
       <div class="card">
         <h3>Etiqueta para Impressão <span>Use em impressora comum ou de etiqueta</span></h3>
         <p class="muted">
-          After cadastrar um produto, clique em <strong>“Etiqueta”</strong> na tabela abaixo para carregar aqui.
+          Após cadastrar um produto, clique em <strong>“Etiqueta”</strong> na tabela abaixo para carregar aqui.
         </p>
         <div id="etiquetaArea">
-          <h4>Baterias Brasil</h4>
+          <h4 id="etiquetaTituloEmpresa">Baterias Brasil</h4>
           <div id="etiquetaNomeProduto">Selecione um produto para gerar a etiqueta.</div>
           <svg id="barcodeEtiqueta"></svg>
         </div>
@@ -520,6 +560,44 @@
     <div class="grid grid-2">
       <div class="card">
         <h2>PDV - Caixa <span>Leitura por código de barras</span></h2>
+
+        <!-- DADOS DO CLIENTE + GARANTIA + CASCOS -->
+        <div class="grid" style="grid-template-columns:1.4fr 1fr; gap:8px; margin-bottom:8px;">
+          <div>
+            <label for="nomeCliente">Nome do cliente</label>
+            <input id="nomeCliente" type="text" placeholder="Nome completo do cliente">
+          </div>
+          <div>
+            <label for="contatoCliente">Contato (telefone/WhatsApp)</label>
+            <input id="contatoCliente" type="text" placeholder="(xx) xxxxx-xxxx">
+          </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1.2fr 0.8fr; gap:8px; margin-bottom:8px;">
+          <div>
+            <label for="codigoGarantia">Código de garantia da bateria</label>
+            <input id="codigoGarantia" type="text" placeholder="Ex: GAR-2025-0001">
+          </div>
+          <div>
+            <label for="mesesGarantia">Total de meses de garantia</label>
+            <input id="mesesGarantia" type="number" min="0" placeholder="Ex: 18">
+          </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1.2fr 1fr; gap:8px; margin-bottom:8px;">
+          <div>
+            <label for="statusCasco">Devolução de cascos / descarte</label>
+            <select id="statusCasco">
+              <option value="nenhum">Nenhum registro</option>
+              <option value="devolucao">Devolução de casco usado</option>
+              <option value="descarte">Descarte ambiental realizado</option>
+            </select>
+          </div>
+          <div>
+            <label for="obsCasco">Observação</label>
+            <input id="obsCasco" type="text" placeholder="Ex: casco em bom estado, sem vazamento">
+          </div>
+        </div>
 
         <label for="codigoLeitura">Código de barras (use o leitor ou digite e Enter)</label>
         <input id="codigoLeitura" type="text" placeholder="Aponte o leitor para a etiqueta" onkeydown="handleEnterCodigo(event)">
@@ -600,6 +678,50 @@
         <p class="muted" style="margin-top:6px;">
           Ao finalizar: o estoque é atualizado automaticamente e a venda entra no balanço mensal e anual.
         </p>
+
+        <hr class="no-print" style="margin:10px 0;border-color:rgba(255,255,255,0.2);">
+
+        <h3 class="no-print" style="font-size:0.9rem; margin-bottom:4px;">Boleto interno</h3>
+        <label for="boletoVencimento" class="no-print">Vencimento do boleto</label>
+        <input id="boletoVencimento" type="date" class="no-print">
+        <div class="flex no-print" style="margin-top:4px;">
+          <button class="btn-outline" type="button" onclick="gerarBoleto()">
+            📄 Gerar boleto interno
+          </button>
+          <button class="btn-outline" type="button" onclick="imprimirBoleto()">
+            🖨️ Imprimir boleto
+          </button>
+        </div>
+        <p class="muted no-print" style="margin-top:4px;">
+          Boleto interno para controle da loja (não é boleto bancário registrado).
+        </p>
+      </div>
+    </div>
+
+    <!-- BOLETO INTERNO -->
+    <div id="boletoArea" class="card" style="margin-top:16px; display:none; background:#fff; color:#000;">
+      <h3 style="margin-bottom:4px;">Boleto interno - <span id="boletoEmpresaNome">Baterias Brasil</span></h3>
+      <div style="font-size:0.8rem; margin-bottom:6px; color:#333;">
+        Este documento é um <strong>boleto interno</strong> para controle da loja. Não substitui boleto bancário registrado em banco.
+      </div>
+      <div style="font-size:0.8rem; margin-bottom:8px;">
+        <strong>Beneficiário:</strong> <span id="boletoBeneficiario"></span><br>
+        <strong>CNPJ:</strong> <span id="boletoCnpj"></span><br>
+        <strong>Endereço:</strong> <span id="boletoEndereco"></span><br>
+        <strong>Contato:</strong> <span id="boletoContato"></span>
+      </div>
+      <div style="font-size:0.8rem; margin-bottom:8px;">
+        <strong>Pagador:</strong> <span id="boletoCliente"></span><br>
+        <strong>Vencimento:</strong> <span id="boletoVencimentoTexto"></span><br>
+        <strong>Valor do documento:</strong> <span id="boletoValor"></span><br>
+        <strong>Código de garantia:</strong> <span id="boletoGarantia"></span>
+      </div>
+      <div style="font-size:0.8rem; margin-bottom:8px;">
+        <strong>Linha digitável (interna):</strong><br>
+        <span id="boletoLinhaDigitavel" style="font-family: 'Courier New', monospace;"></span>
+      </div>
+      <div style="margin-top:8px;">
+        <svg id="barcodeBoleto"></svg>
       </div>
     </div>
   </section>
@@ -613,6 +735,8 @@
           <div>Faturamento mês: <strong id="balFatMes">R$ 0,00</strong></div>
           <div>Custo mês: <strong id="balCustoMes">R$ 0,00</strong></div>
           <div>Lucro mês: <strong id="balLucroMes">R$ 0,00</strong></div>
+          <div>Cascos devolvidos: <strong id="balCascosMes">0</strong></div>
+          <div>Descartes registrados: <strong id="balDescMes">0</strong></div>
         </div>
         <p class="muted" style="margin-top:8px;">
           Considera todas as vendas registradas neste mesmo mês (data do computador).
@@ -625,6 +749,8 @@
           <div>Faturamento ano: <strong id="balFatAno">R$ 0,00</strong></div>
           <div>Custo ano: <strong id="balCustoAno">R$ 0,00</strong></div>
           <div>Lucro ano: <strong id="balLucroAno">R$ 0,00</strong></div>
+          <div>Cascos devolvidos: <strong id="balCascosAno">0</strong></div>
+          <div>Descartes registrados: <strong id="balDescAno">0</strong></div>
         </div>
         <p class="muted" style="margin-top:8px;">
           Soma de todas as vendas do ano atual. Ideal para fechamento anual.
@@ -638,7 +764,7 @@
         <thead>
           <tr>
             <th>Data/Hora</th>
-            <th>Itens</th>
+            <th>Itens / Cliente / Garantia / Cascos</th>
             <th>Forma</th>
             <th>Total</th>
             <th>Lucro</th>
@@ -657,6 +783,78 @@
 </footer>
 
 <script>
+  // ==========================
+  // SENHA PARA ESTOQUE/BALANÇO
+  // ==========================
+  const SENHA_SECOES = "joseinacio2025";
+  let estoqueLiberado = false;
+  let balancoLiberado = false;
+
+  // ==========================
+  // DADOS DA EMPRESA
+  // ==========================
+  let empresa = {
+    nome: "Baterias Brasil",
+    cnpj: "",
+    endereco: "",
+    telefone: "",
+    email: "",
+    cidade: "MARILIA",
+    pixChave: "sua_chave_pix_aqui"
+  };
+
+  const PIX_TXID_BASE = "BBERP";
+
+  function carregarEmpresa() {
+    try {
+      const e = localStorage.getItem('bb_empresa');
+      if (e) {
+        const obj = JSON.parse(e);
+        empresa = { ...empresa, ...obj };
+      }
+    } catch (err) {
+      console.warn('Não foi possível carregar dados da empresa:', err);
+    }
+  }
+
+  function salvarEmpresa(event) {
+    event.preventDefault();
+    empresa.nome = document.getElementById('empresaNome').value.trim() || empresa.nome;
+    empresa.cnpj = document.getElementById('empresaCnpj').value.trim();
+    empresa.endereco = document.getElementById('empresaEndereco').value.trim();
+    empresa.telefone = document.getElementById('empresaTelefone').value.trim();
+    empresa.email = document.getElementById('empresaEmail').value.trim();
+    const cidadeInput = document.getElementById('empresaCidade').value.trim();
+    empresa.cidade = cidadeInput ? cidadeInput.toUpperCase() : empresa.cidade;
+    const pixInput = document.getElementById('empresaPixChave').value.trim();
+    if (pixInput) empresa.pixChave = pixInput;
+
+    localStorage.setItem('bb_empresa', JSON.stringify(empresa));
+    aplicarEmpresaNaInterface();
+    alert('Dados da empresa salvos com sucesso.');
+  }
+
+  function aplicarEmpresaNaInterface() {
+    const headerNome = document.getElementById('headerNomeEmpresa');
+    if (headerNome) headerNome.textContent = empresa.nome;
+
+    const etiquetaTitulo = document.getElementById('etiquetaTituloEmpresa');
+    if (etiquetaTitulo) etiquetaTitulo.textContent = empresa.nome;
+
+    const boletoNome = document.getElementById('boletoEmpresaNome');
+    if (boletoNome) boletoNome.textContent = empresa.nome;
+
+    if (document.getElementById('empresaNome')) {
+      document.getElementById('empresaNome').value = empresa.nome || '';
+      document.getElementById('empresaCnpj').value = empresa.cnpj || '';
+      document.getElementById('empresaEndereco').value = empresa.endereco || '';
+      document.getElementById('empresaTelefone').value = empresa.telefone || '';
+      document.getElementById('empresaEmail').value = empresa.email || '';
+      document.getElementById('empresaCidade').value = empresa.cidade || '';
+      document.getElementById('empresaPixChave').value = empresa.pixChave || '';
+    }
+  }
+
   // ==========================
   // DADOS EM MEMÓRIA + STORAGE
   // ==========================
@@ -685,6 +883,24 @@
   // TROCA DE ABA
   // ==============
   function showView(view, btn) {
+    // protege estoque e balanço com senha
+    if (view === 'estoque' && !estoqueLiberado) {
+      const senha = prompt('Senha para acessar o estoque:');
+      if (senha !== SENHA_SECOES) {
+        alert('Senha incorreta.');
+        return;
+      }
+      estoqueLiberado = true;
+    }
+    if (view === 'balanco' && !balancoLiberado) {
+      const senha = prompt('Senha para acessar o balanço:');
+      if (senha !== SENHA_SECOES) {
+        alert('Senha incorreta.');
+        return;
+      }
+      balancoLiberado = true;
+    }
+
     const sections = document.querySelectorAll('.view');
     sections.forEach(s => s.classList.remove('active'));
     const el = document.getElementById('view-' + view);
@@ -697,6 +913,7 @@
     } else {
       navButtons.forEach(b => {
         if (b.textContent.includes('Dashboard') && view === 'dashboard') b.classList.add('active');
+        if (b.textContent.includes('Configuração') && view === 'config') b.classList.add('active');
         if (b.textContent.includes('Estoque') && view === 'estoque') b.classList.add('active');
         if (b.textContent.includes('Vendas') && view === 'vendas') b.classList.add('active');
         if (b.textContent.includes('Balanço') && view === 'balanco') b.classList.add('active');
@@ -851,7 +1068,8 @@
       });
     } catch (e) {
       console.warn('Erro ao gerar código de barras:', e);
-      document.getElementById('alertLibs').style.display = 'block';
+      const alertLibs = document.getElementById('alertLibs');
+      if (alertLibs) alertLibs.style.display = 'block';
     }
   }
 
@@ -859,7 +1077,7 @@
     window.print();
   }
 
-  // ============
+  // ============  
   // CARRINHO/PDV
   // ============
   function handleEnterCodigo(event) {
@@ -971,12 +1189,6 @@
   // ============
   // PIX - EMV
   // ============
-  // Configure sua chave Pix aqui:
-  const PIX_CHAVE = "sua_chave_pix_aqui"; // Ex: telefone, e-mail ou chave aleatória
-  const PIX_NOME_RECEBEDOR = "BATERIAS BRASIL";
-  const PIX_CIDADE = "MARILIA";
-  const PIX_TXID_BASE = "BBERP";
-
   function limparTextoPix(text) {
     if (!text) return "";
     return text
@@ -1010,9 +1222,9 @@
 
   function gerarPayloadPix(valorTotal) {
     const amount = valorTotal.toFixed(2);
-    const chave = PIX_CHAVE || "CHAVEPIXTESTE@EMAIL.COM";
-    const nome = limparTextoPix(PIX_NOME_RECEBEDOR || "BATERIAS BRASIL");
-    const cidade = limparTextoPix(PIX_CIDADE || "MARILIA").slice(0, 15);
+    const chave = empresa.pixChave || "CHAVEPIXTESTE@EMAIL.COM";
+    const nome = limparTextoPix(empresa.nome || "BATERIAS BRASIL");
+    const cidade = limparTextoPix(empresa.cidade || "MARILIA").slice(0, 15);
     const txid = (PIX_TXID_BASE || "TXID") + Date.now().toString().slice(-6);
 
     const gui = emvTag("00", "br.gov.bcb.pix");
@@ -1061,8 +1273,87 @@
       document.getElementById('valorPixAtual').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
     } catch (e) {
       console.warn('Erro ao gerar QRCode Pix:', e);
-      document.getElementById('alertLibs').style.display = 'block';
+      const alertLibs = document.getElementById('alertLibs');
+      if (alertLibs) alertLibs.style.display = 'block';
     }
+  }
+
+  // ============
+  // BOLETO INTERNO
+  // ============
+  function gerarLinhaDigitavelFake(total) {
+    const valor = total.toFixed(2).replace('.', '').padStart(10, '0');
+    const base = Date.now().toString();
+    let linha = '34191' + '79000' + base.slice(-10) + valor;
+    linha = (linha + '0'.repeat(47)).slice(0,47);
+    return linha;
+  }
+
+  function gerarBoleto() {
+    const totalStr = document.getElementById('totalVenda').textContent.replace('R$','').replace('.','').replace(',','.');
+    const total = parseFloat(totalStr) || 0;
+    if (!carrinho.length || total <= 0) {
+      alert('Carrinho vazio ou valor zero.');
+      return;
+    }
+
+    const nomeCliente = document.getElementById('nomeCliente').value.trim() || 'Cliente';
+    const contatoCliente = document.getElementById('contatoCliente').value.trim();
+    const codigoGarantia = document.getElementById('codigoGarantia').value.trim();
+    const mesesGarantia = parseInt(document.getElementById('mesesGarantia').value) || 0;
+
+    let vencInput = document.getElementById('boletoVencimento').value;
+    let vencDate;
+    if (vencInput) {
+      vencDate = new Date(vencInput + 'T00:00:00');
+    } else {
+      vencDate = new Date();
+      vencDate.setDate(vencDate.getDate() + 3);
+    }
+    const vencStr = vencDate.toLocaleDateString('pt-BR');
+
+    const linha = gerarLinhaDigitavelFake(total);
+
+    document.getElementById('boletoEmpresaNome').textContent = empresa.nome;
+    document.getElementById('boletoBeneficiario').textContent = empresa.nome;
+    document.getElementById('boletoCnpj').textContent = empresa.cnpj || '---';
+    document.getElementById('boletoEndereco').textContent = empresa.endereco || '---';
+    const contatoEmp = [empresa.telefone, empresa.email].filter(Boolean).join(' • ');
+    document.getElementById('boletoContato').textContent = contatoEmp || '---';
+    document.getElementById('boletoCliente').textContent = nomeCliente + (contatoCliente ? ' - ' + contatoCliente : '');
+    document.getElementById('boletoVencimentoTexto').textContent = vencStr;
+    document.getElementById('boletoValor').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+    let garantiaTexto = codigoGarantia || '---';
+    if (mesesGarantia > 0) {
+      garantiaTexto += ' (' + mesesGarantia + ' meses)';
+    }
+    document.getElementById('boletoGarantia').textContent = garantiaTexto;
+    document.getElementById('boletoLinhaDigitavel').textContent = linha;
+
+    try {
+      JsBarcode("#barcodeBoleto", linha, {
+        format: "CODE128",
+        displayValue: false,
+        width: 2,
+        height: 40,
+        margin: 0
+      });
+    } catch (e) {
+      console.warn('Erro ao gerar código de barras do boleto:', e);
+      const alertLibs = document.getElementById('alertLibs');
+      if (alertLibs) alertLibs.style.display = 'block';
+    }
+
+    document.getElementById('boletoArea').style.display = 'block';
+  }
+
+  function imprimirBoleto() {
+    if (document.getElementById('boletoArea').style.display !== 'block') {
+      alert('Gere o boleto primeiro.');
+      return;
+    }
+    window.print();
   }
 
   // ============
@@ -1091,9 +1382,19 @@
       }
     });
 
-    // Registra venda
+    // Dados adicionais da venda
     const formaPagamento = document.getElementById('formaPagamento').value;
     const custoTotal = total - lucro;
+
+    const nomeCliente = document.getElementById('nomeCliente').value.trim();
+    const contatoCliente = document.getElementById('contatoCliente').value.trim();
+    const codigoGarantia = document.getElementById('codigoGarantia').value.trim();
+    const mesesGarantia = parseInt(document.getElementById('mesesGarantia').value) || 0;
+    const statusCasco = document.getElementById('statusCasco').value;
+    const obsCasco = document.getElementById('obsCasco').value.trim();
+
+    const cascosDevolvidos = statusCasco === 'devolucao' ? 1 : 0;
+    const descartesRegistrados = statusCasco === 'descarte' ? 1 : 0;
 
     const venda = {
       id: Date.now(),
@@ -1102,7 +1403,21 @@
       formaPagamento,
       total,
       custoTotal,
-      lucro
+      lucro,
+      cliente: {
+        nome: nomeCliente,
+        contato: contatoCliente
+      },
+      garantia: {
+        codigo: codigoGarantia,
+        meses: mesesGarantia
+      },
+      casco: {
+        status: statusCasco,
+        observacao: obsCasco
+      },
+      cascosDevolvidos,
+      descartesRegistrados
     };
 
     vendas.push(venda);
@@ -1112,6 +1427,17 @@
     renderTabelaProdutos();
     renderTabelaVendas();
     atualizarDashboardEBalancos();
+
+    // Limpa campos do PDV (cliente, garantia, cascos, Pix, boleto)
+    document.getElementById('nomeCliente').value = '';
+    document.getElementById('contatoCliente').value = '';
+    document.getElementById('codigoGarantia').value = '';
+    document.getElementById('mesesGarantia').value = '';
+    document.getElementById('statusCasco').value = 'nenhum';
+    document.getElementById('obsCasco').value = '';
+    document.getElementById('qrcodePix').innerHTML = '';
+    document.getElementById('pixPayload').value = '';
+    document.getElementById('boletoArea').style.display = 'none';
 
     alert('Venda registrada e estoque atualizado.');
   }
@@ -1127,21 +1453,30 @@
     let fat = 0;
     let custo = 0;
     let lucro = 0;
+    let cascos = 0;
+    let descartes = 0;
 
     vendas.forEach(v => {
       const d = new Date(v.data);
       const mes = d.getMonth();
       const ano = d.getFullYear();
 
-      if (modo === 'mes' && mes === mesAtual && ano === anoAtual) {
+      const isMes = (mes === mesAtual && ano === anoAtual);
+      const isAno = (ano === anoAtual);
+
+      if (modo === 'mes' && isMes) {
         fat += v.total;
         custo += v.custoTotal;
         lucro += v.lucro;
+        cascos += v.cascosDevolvidos || 0;
+        descartes += v.descartesRegistrados || 0;
       }
-      if (modo === 'ano' && ano === anoAtual) {
+      if (modo === 'ano' && isAno) {
         fat += v.total;
         custo += v.custoTotal;
         lucro += v.lucro;
+        cascos += v.cascosDevolvidos || 0;
+        descartes += v.descartesRegistrados || 0;
       }
     });
 
@@ -1149,15 +1484,18 @@
       document.getElementById('balFatMes').textContent = 'R$ ' + fat.toFixed(2).replace('.', ',');
       document.getElementById('balCustoMes').textContent = 'R$ ' + custo.toFixed(2).replace('.', ',');
       document.getElementById('balLucroMes').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
-      // também atualiza dashboard
       document.getElementById('dashFatMes').textContent = 'R$ ' + fat.toFixed(2).replace('.', ',');
       document.getElementById('dashLucroMes').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
+      document.getElementById('balCascosMes').textContent = cascos;
+      document.getElementById('balDescMes').textContent = descartes;
     }
 
     if (modo === 'ano') {
       document.getElementById('balFatAno').textContent = 'R$ ' + fat.toFixed(2).replace('.', ',');
       document.getElementById('balCustoAno').textContent = 'R$ ' + custo.toFixed(2).replace('.', ',');
       document.getElementById('balLucroAno').textContent = 'R$ ' + lucro.toFixed(2).replace('.', ',');
+      document.getElementById('balCascosAno').textContent = cascos;
+      document.getElementById('balDescAno').textContent = descartes;
     }
   }
 
@@ -1183,8 +1521,20 @@
         tdData.textContent = dataStr;
         tr.appendChild(tdData);
 
+        const itensStr = v.itens.map(i => `${i.nome} (x${i.quantidade})`).join(', ');
+        const infoExtra = [];
+        if (v.cliente && v.cliente.nome) infoExtra.push('Cliente: ' + v.cliente.nome);
+        if (v.garantia && v.garantia.codigo) {
+          const gMeses = v.garantia.meses ? ` (${v.garantia.meses} meses)` : '';
+          infoExtra.push('Garantia: ' + v.garantia.codigo + gMeses);
+        }
+        if (v.casco && v.casco.status && v.casco.status !== 'nenhum') {
+          if (v.casco.status === 'devolucao') infoExtra.push('Casco: devolução');
+          if (v.casco.status === 'descarte') infoExtra.push('Casco: descarte');
+        }
+
         const tdItens = document.createElement('td');
-        tdItens.textContent = v.itens.map(i => `${i.nome} (x${i.quantidade})`).join(', ');
+        tdItens.textContent = itensStr + (infoExtra.length ? ' • ' + infoExtra.join(' | ') : '');
         tr.appendChild(tdItens);
 
         const tdForma = document.createElement('td');
@@ -1207,13 +1557,16 @@
   document.getElementById('formaPagamento').addEventListener('change', () => {
     const fp = document.getElementById('formaPagamento').value;
     document.getElementById('areaCartao').style.display = fp === 'cartao' ? 'block' : 'none';
-    document.getElementById('areaPix').style.display = fp === 'pix' ? 'block' : 'block'; // deixa Pix sempre visível
+    document.getElementById('areaPix').style.display = 'block'; // deixa Pix sempre visível
   });
 
   // ====================
   // INICIALIZAÇÃO
   // ====================
   window.addEventListener('DOMContentLoaded', () => {
+    carregarEmpresa();
+    aplicarEmpresaNaInterface();
+
     carregarDados();
     renderTabelaProdutos();
     renderTabelaVendas();
